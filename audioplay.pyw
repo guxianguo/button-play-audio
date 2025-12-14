@@ -9,7 +9,6 @@ import pynput
 
 import array
 
-
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
@@ -95,15 +94,24 @@ class controler:
             raise MyException("找不到该设备!!!")
 
     def read_data(self, audio_file_path, audio_channels):
-        if audio_file_path.endswith(".wav") or audio_file_path.endswith(".WAV"):
+        if  audio_file_path.endswith(".wav") or audio_file_path.endswith(".WAV") or \
+            audio_file_path.endswith(".flac") or audio_file_path.endswith(".FLAC"):
+                
             data_array, sample_rate = soundfile.read(audio_file_path, dtype="float32")
             return data_array * self.volme
-        elif audio_file_path.endswith(".pcm") or audio_file_path.endswith(".raw"):
-            data_array = array.array("h")
-            with open(audio_file_path, "rb") as f:
-                data_array.frombytes(f.read())
-            data_array = data_array[::audio_channels]
-            return data_array
+        else:
+            try:
+                data_array, sample_rate = soundfile.read(audio_file_path, dtype="float32")
+                return data_array * self.volme
+            except:
+                if(audio_file_path.endswith(".pcm") or audio_file_path.endswith(".raw")):
+                    data_array_fail = array.array("h")
+                    with open(audio_file_path, "rb") as f:
+                        data_array_fail.frombytes(f.read())
+                    data_array_fail = data_array_fail[::audio_channels]
+                    return data_array_fail
+                else:
+                    raise MyException("不支持的音频格式")
 
     def play_audio_files(
         self, audio_file_path, channel_id, audio_channels=2, sample_rate=sample_rate
@@ -115,15 +123,23 @@ class controler:
                 data_array = self.read_data(audio_file_path, audio_channels)
                 k = sd.play(data_array, sample_rate, loop=self.loop)
                 self.isplay = False
-            else:
-                raise RuntimeError
 
         except sd.PortAudioError:
             print("端口出错")
-            raise RuntimeError
+            raise MyException("端口出错")
+        except MyException as e:
+            print(e.args)
+            raise e
+        except Exception as e:
+            print(str(e))
+            raise MyException(str(e))
+        
+        finally:
+            self.isplay = False
 
     def play(self, path):
         self.play_audio_files(audio_file_path=path, channel_id=self.device_id)
+
 
     def busy(self):
         return self.isplay
@@ -171,11 +187,11 @@ class single:
 
     def play(self, path):
         try:
+            self.gui.stop()
             self.gui.control.play(path)
             self.button_stop.config(bg="red")
-        except:
-            messagebox.showwarning("error", "cant paly")
-            raise
+        except MyException as e :
+            messagebox.showwarning("error", e.args)
 
     def add_or_play(self):
         p = self.getpath()
@@ -185,7 +201,7 @@ class single:
             self.choosefile()
 
     def stop(self):
-        self.gui.control.stop()
+        self.gui.stop()
         self.button_stop.configure(bg="white")
 
     def die(self):
@@ -266,6 +282,7 @@ class gui(tk.Tk):
                 break
 
     def clear(self):
+        self.stop()
         p = self.leftframe.winfo_children()
         for i in p:
             i.destroy()
@@ -300,7 +317,7 @@ class gui(tk.Tk):
             p = filedialog.asksaveasfilename(filetypes=[("Text Files", "*.apl")])
             if not p.endswith(".apl"):
                 p = p + ".apl"
-            with open(p, "w") as fp:
+            with open(p, "w",encoding="utf8") as fp:
                 for i in paths:
                     fp.write(i + "\n")
 
@@ -309,7 +326,7 @@ class gui(tk.Tk):
             p = filedialog.askopenfilename(filetypes=[("Text Files", "*.apl")])
             if p:
                 try:
-                    with open(p, "r") as fp:
+                    with open(p, "r",encoding="utf8") as fp:
                         paths = fp.read().split("\n")
                         self.clear()
                         for i in paths:
@@ -385,6 +402,8 @@ class lis:
         def play():
             try:
                 print("press", number)
+                self.app.singles[number - 1]
+                self.app.stop()
                 self.app.singles[number - 1].add_or_play()
             except:
                 print("error")

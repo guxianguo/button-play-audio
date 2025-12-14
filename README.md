@@ -16,3 +16,5 @@ loop ： 循环模式
 下拉列表 ： 输出至
 
 快捷键： ctrl + number[1:9]播放1-9号音频。ctrl+0 暂停
+
+未知问题：Error : flac decoder lost sync.

@@ -1,2 +1,3 @@
-C:/Users/steve/Desktop/����/rvc/��ĳ�ļ�����wav�ļ��ϳ�һ���ļ�.py
-C:/Users/steve/Desktop/����/rvc/transtowav.py
+F:/music/周杰伦/2003-寻找周杰伦[flac]/2003-寻找周杰伦[flac]/周杰伦 - 断了的弦(伴奏带)）.flac
+F:/music/周杰伦/2003-寻找周杰伦[flac]/2003-寻找周杰伦[flac]/周杰伦 - 轨迹.flac
+F:/music/草东没有派对/丑奴儿/4. 勇敢的人.flac
